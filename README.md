@@ -54,11 +54,8 @@ PaGE/
 │   ├── gazefollow/
 │   ├── vat/
 │   ├── childplay/
-│   ├── screen/
 │   ├── OpenImages/
-│   ├── MPII/
-│   ├── COCO2017/
-│   └── GOOReal/
+│   └── MPII/
 ```
 
 ### Download Datasets
@@ -70,7 +67,15 @@ Download from the [official website](http://gazefollow.csail.mit.edu/):
 - `test_annotations_release.txt`
 - Image files
 
-Place in `data/gazefollow/`
+Place in `data/gazefollow/` with the following layout:
+
+```
+data/gazefollow/
+├── train/
+├── test2/
+├── test_annotations_release.txt
+└── train_annotations_release.txt
+```
 
 #### 2. VideoAttentionTarget (VAT)
 
@@ -78,7 +83,13 @@ Download from the [official repository](https://github.com/ejcgt/attention-targe
 - Annotations
 - Video frames
 
-Place in `data/vat/`
+Place in `data/vat/` with the following layout:
+
+```
+data/vat/
+├── annotations/
+└── images/
+```
 
 #### 3. ChildPlay
 
@@ -86,21 +97,18 @@ Download from the [official website](https://github.com/ejcgt/attention-target-d
 - Annotations
 - Video frames
 
-Place in `data/childplay/`
+Place in `data/childplay/` with the following layout:
 
-#### 4. OpenImages
-
-我们从openimg(https://storage.googleapis.com/openimages/web/index.html)中挑选了 ["Person", "Man", "Woman", "Boy", "Girl"] 类别的图像，We provide a download script using FiftyOne:
-
-```bash
-# Install FiftyOne
-uv pip install fiftyone
-
-# Download OpenImages (Person, Man, Woman detections)
-python data_prep/download_openimages.py
+```
+data/childplay/
+├── images/
+└── annotations/
 ```
 
-#### 5. MPII Human Pose
+
+> **Distillation only:** The two datasets below (MPII and OpenImages) are required **only for knowledge distillation**. If you are not running distillation, you can skip them entirely.
+
+#### 6. MPII Human Pose
 
 Download from the [official website](http://human-pose.mpi-inf.mpg.de/):
 - `mpii_human_pose_v1_u12_1.mat` (annotations)
@@ -115,26 +123,20 @@ data/MPII/
     └── mpii_human_pose_v1_u12_1.mat     # annotation file
 ```
 
-**Note:** Only the **train** split has public annotations — the test split's head
-boxes are withheld by the dataset authors, so preprocessing exports the train split.
-Head boxes are read directly from the MPII `annorect` head-rectangle fields
-(`x1,y1,x2,y2`); frames with no annotated head rectangle are skipped.
 
-#### 6. COCO 2017
+#### 7. OpenImages
 
-Download from [COCO website](https://cocodataset.org/#download):
-- Train images
-- Annotations
+We use images from [Open Images V7](https://storage.googleapis.com/openimages/web/index.html), selecting samples annotated with the person-related classes `Person`, `Man`, `Woman`, `Boy`, and `Girl`. Only the **train** split is downloaded.
 
-Place in `data/COCO2017/`
+We provide a download script based on [FiftyOne](https://voxel51.com/fiftyone/):
 
-#### 7. GOOReal (Evaluation only)
+```bash
+# Install FiftyOne into the environment
+uv pip install fiftyone
 
-Download from the [official repository](https://github.com/cmu-ci-lab/gaze_target_estimation):
-- Test annotations
-- Images
-
-Place in `data/GOOReal/`
+# Download the OpenImages train split (person classes, detections)
+python data_prep/download_openimages.py
+```
 
 ### Data Preprocessing
 
@@ -149,7 +151,15 @@ python data_prep/preprocess_vat.py --data_path ./data/vat
 
 # ChildPlay
 python data_prep/preprocess_childplay.py --data_path ./data/childplay
+```
 
+Each preprocessing script generates `{split}_preprocessed.json` files in the respective dataset directories.
+
+#### Distillation-only preprocessing (MPII & OpenImages)
+
+Only needed if you plan to run knowledge distillation.
+
+```bash
 # MPII
 python data_prep/preprocess_mpii.py --data_path ./data/MPII
 
@@ -167,8 +177,6 @@ python data_prep/preprocess_openimages.py \
     --crowdhuman_weights ./yolov5-crowdhuman/weights/crowdhuman_yolov5m.pt
 ```
 
-Each preprocessing script will generate `{split}_preprocessed.json` files in the respective dataset directories.
-
 ## Pre-trained Models
 
 We provide pre-trained checkpoints on HuggingFace:
@@ -176,23 +184,39 @@ We provide pre-trained checkpoints on HuggingFace:
 - [page-vits](https://huggingface.co/Octopus1/page-vits) - Small model (ViT-S backbone)
 - [page-vitsplus](https://huggingface.co/Octopus1/page-vitsplus) - Small+ model
 - [page-vitb](https://huggingface.co/Octopus1/page-vitb) - Base model (ViT-B backbone)
-- [page-vitb-screen](https://huggingface.co/Octopus1/page-vitb-screen) - Base model trained with screen data
-- [page-vitl](https://huggingface.co/Octopus1/page-vitl) - Large model (ViT-L backbone)
 - [page-vithplus](https://huggingface.co/Octopus1/page-vithplus) - Huge+ model (ViT-H+ backbone)
 
-Download checkpoints:
+Download checkpoints that you need:
 
 ```bash
 # Using HuggingFace CLI
-huggingface-cli download Octopus1/page-vitb --local-dir ./checkpoints/page-vitb
+hf download Octopus1/page-vits --local-dir ./checkpoints/page-vits
+hf download Octopus1/page-vitsplus --local-dir ./checkpoints/page-vitsplus
+hf download Octopus1/page-vitb --local-dir ./checkpoints/page-vitb
+hf download Octopus1/page-vithplus --local-dir ./checkpoints/page-vithplus
 ```
 
-Or download via Python:
+### DINOv3 Backbone Weights (required for training)
 
-```python
-from huggingface_hub import hf_hub_download
-hf_hub_download(repo_id="Octopus1/page-vitb", filename="model.pt", local_dir="./checkpoints/page-vitb")
+Training initializes the scene and head branches from pre-trained DINOv3 backbones. These are **not** needed for inference with a released PaGE checkpoint, but are **required if you train or fine-tune from scratch**.
+
+Download the backbone matching the model size you plan to train into `./checkpoints/`:
+
+```bash
+# ViT-S  (page_vits_*)
+hf download facebook/dinov3-vits16-pretrain-lvd1689m      --local-dir ./checkpoints/dinov3-vits16-pretrain-lvd1689m
+
+# ViT-S+ (page_vitsplus_*)
+hf download facebook/dinov3-vits16plus-pretrain-lvd1689m  --local-dir ./checkpoints/dinov3-vits16plus-pretrain-lvd1689m
+
+# ViT-B  (page_vitb_*)
+hf download facebook/dinov3-vitb16-pretrain-lvd1689m      --local-dir ./checkpoints/dinov3-vitb16-pretrain-lvd1689m
+
+# ViT-H+ (page_vithplus_*)
+hf download facebook/dinov3-vith16plus-pretrain-lvd1689m  --local-dir ./checkpoints/dinov3-vith16plus-pretrain-lvd1689m
 ```
+
+The paths above match what [page/model_factory.py](page/model_factory.py) expects (`./checkpoints/dinov3-*`). DINOv3 weights are gated on HuggingFace, so make sure your `HF_TOKEN` is set (see [HuggingFace Token Setup](#huggingface-token-setup)) and that you have accepted the model license.
 
 ## Training
 

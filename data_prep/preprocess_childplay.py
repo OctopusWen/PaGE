@@ -13,27 +13,11 @@ args = parser.parse_args()
 
 
 def main(DATA_PATH):
-    # with open(os.path.join(DATA_PATH, "train_preprocessed.json"), "r") as f:
-    #     train = json.load(f)
-
-    # for i in range(len(train)):
-    #     for j in range(len(train[i])):
-    #         for k in range(len(train[i][j]["heads"])):
-    #             if train[i][j]["heads"][k]['inout'] == 1 and (train[i][j]["heads"][k]['gazex'][0] < 0 or train[i][j]["heads"][k]['gazey'][0] < 0):
-    #                 train[i][j]["heads"][k]['inout'] = 0
-    #                 train[i][j]["heads"][k]['gazex'][0] = 0.0
-    #                 train[i][j]["heads"][k]['gazey'][0] = 0.0
-    #                 train[i][j]["heads"][k]['gazex_norm'][0] = 0.0
-    #                 train[i][j]["heads"][k]['gazey_norm'][0] = 0.0
-
-    # with open(os.path.join(DATA_PATH, "train_preprocessed.json"), "w", encoding="utf-8") as f:
-    #     json.dump(train, f)
-
     # TRAIN
     multiperson_ex = 0
     TRAIN_FRAMES = []
     for train_csv_dir in [os.path.join(DATA_PATH, "annotations", "train"), os.path.join(DATA_PATH, "annotations", "val")]:
-        for csv_path in tqdm(os.listdir(train_csv_dir)):
+        for csv_path in tqdm(sorted(f for f in os.listdir(train_csv_dir) if f.endswith(".csv"))):
             # HEADERS: clip, frame, person_id, bbox_x, bbox_y, bbox_width, bbox_height, gaze_class, gaze_x, gaze_y, is_child
             df = pd.read_csv(os.path.join(train_csv_dir, csv_path))
             df = df[df['gaze_class'].isin({"inside_visible", "outside_frame"})]  # keep only conventional gaze types, excluding things like gaze shifts or eyes closed
@@ -44,7 +28,7 @@ def main(DATA_PATH):
                 clip_name = "_".join(clip.split("_")[:-1])
                 clip_base_idx = int(clip.split("_")[-1].split("-")[0])
                 frame_idx = clip_base_idx + int(frame) - 1
-                img_path = os.path.join(DATA_PATH, "images", "images", clip, f"{clip_name}_{frame_idx}.jpg")
+                img_path = os.path.join(DATA_PATH, "images", clip, f"{clip_name}_{frame_idx}.jpg")
                 img = Image.open(img_path)
                 width, height = img.size
                 num_people = len(row["person_id"])
@@ -86,7 +70,7 @@ def main(DATA_PATH):
                     'height': height,
                 })
             TRAIN_FRAMES.append(SEQUENCE)
-            
+
     # print("Train set: {} frames, {} multi-person".format(len(TRAIN_FRAMES), multiperson_ex))
     with open(os.path.join(DATA_PATH, "train_preprocessed.json"), "w", encoding="utf-8") as f:
         json.dump(TRAIN_FRAMES, f)
@@ -95,7 +79,7 @@ def main(DATA_PATH):
     test_csv_dir = os.path.join(DATA_PATH, "annotations", "test")
     multiperson_ex = 0
     TEST_FRAMES = []
-    for csv_path in tqdm(os.listdir(test_csv_dir)):
+    for csv_path in tqdm(sorted(f for f in os.listdir(test_csv_dir) if f.endswith(".csv"))):
         # HEADERS: clip, frame, person_id, bbox_x, bbox_y, bbox_width, bbox_height, gaze_class, gaze_x, gaze_y, is_child
         df = pd.read_csv(os.path.join(test_csv_dir, csv_path))
         df = df[df['gaze_class'].isin({"inside_visible", "outside_frame"})]  # keep only conventional gaze types, excluding things like gaze shifts or eyes closed
@@ -106,7 +90,7 @@ def main(DATA_PATH):
             clip_name = "_".join(clip.split("_")[:-1])
             clip_base_idx = int(clip.split("_")[-1].split("-")[0])
             frame_idx = clip_base_idx + int(frame) - 1
-            img_path = os.path.join(DATA_PATH, "images", "images", clip, f"{clip_name}_{frame_idx}.jpg")
+            img_path = os.path.join(DATA_PATH, "images", clip, f"{clip_name}_{frame_idx}.jpg")
             img = Image.open(img_path)
             width, height = img.size
             num_people = len(row["person_id"])
@@ -150,7 +134,7 @@ def main(DATA_PATH):
         TEST_FRAMES.append(SEQUENCE)
     # print("Test set: {} frames, {} multi-person".format(len(TEST_FRAMES), multiperson_ex))
     with open(os.path.join(DATA_PATH, "test_preprocessed.json"), "w", encoding="utf-8") as f:
-        json.dump(TEST_FRAMES, f)   
+        json.dump(TEST_FRAMES, f)
 
 
 if __name__ == "__main__":
