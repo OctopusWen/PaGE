@@ -31,11 +31,11 @@ def get_page_model(model_name) -> tuple[PaGE, list]:
 
 def page_vits_inout():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (512, 512)
     ))
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (256, 256)
     ))
 
@@ -48,11 +48,11 @@ def page_vits_inout():
 
 def page_vits_inout_student():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -65,11 +65,11 @@ def page_vits_inout_student():
 
 def page_vits_inout_finetune():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16",
+        model_path = "./checkpoints/dinov3-vits16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -82,11 +82,11 @@ def page_vits_inout_finetune():
 
 def page_vitsplus_inout():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (512, 512)
     ))
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (256, 256)
     ))
 
@@ -99,11 +99,11 @@ def page_vitsplus_inout():
 
 def page_vitsplus_inout_student():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -116,11 +116,11 @@ def page_vitsplus_inout_student():
 
 def page_vitsplus_inout_finetune():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vits16plus",
+        model_path = "./checkpoints/dinov3-vits16plus-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -133,11 +133,11 @@ def page_vitsplus_inout_finetune():
 
 def page_vitb_inout():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (512, 512)
     ))
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (256, 256)
     ))
 
@@ -150,11 +150,11 @@ def page_vitb_inout():
 
 def page_vitb_inout_student():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -167,11 +167,11 @@ def page_vitb_inout_student():
 
 def page_vitb_inout_finetune():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitb16",
+        model_path = "./checkpoints/dinov3-vitb16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -184,11 +184,11 @@ def page_vitb_inout_finetune():
 
 def page_vitl_inout():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (512, 512)
     ))
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (256, 256)
     ))
 
@@ -201,11 +201,11 @@ def page_vitl_inout():
 
 def page_vitl_inout_student():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -218,11 +218,11 @@ def page_vitl_inout_student():
 
 def page_vitl_inout_finetune():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vitl16",
+        model_path = "./checkpoints/dinov3-vitl16-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 
@@ -235,11 +235,11 @@ def page_vitl_inout_finetune():
 
 def page_vithplus_inout():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vith16plus",
+        model_path = "./checkpoints/dinov3-vith16plus-pretrain-lvd1689m",
         in_size = (512, 512)
     ))
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vith16plus",
+        model_path = "./checkpoints/dinov3-vith16plus-pretrain-lvd1689m",
         in_size = (256, 256)
     ))
 
@@ -252,11 +252,11 @@ def page_vithplus_inout():
 
 def page_vithplus_inout_finetune():
     scene_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vith16plus",
+        model_path = "./checkpoints/dinov3-vith16plus-pretrain-lvd1689m",
         in_size = (512, 512)
     ), freeze_backbone=False)
     head_branch = SimpleBackboneWrapper(DinoV3HFBackbone(
-        model_path = "/root/data/dinov3_model/DINOv3/dinov3_vith16plus",
+        model_path = "./checkpoints/dinov3-vith16plus-pretrain-lvd1689m",
         in_size = (256, 256)
     ), freeze_backbone=False)
 

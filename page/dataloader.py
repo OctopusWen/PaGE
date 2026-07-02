@@ -33,13 +33,6 @@ def load_data_childplay(file, sample_rate, path):
             data.append({'basedir': path, 'data': sequences[i][j], 'src': 2})
     return data
 
-def load_data_screen(file, sample_rate, path):
-    data = json.load(open(file, "r"))
-    ret = []
-    for i in range(0, len(data), sample_rate):
-        ret.append({'basedir': path, 'data': data[i], 'src': 3})
-    return ret
-
 def load_data_coco(file, sample_rate, path):
     data = json.load(open(file, "r"))
     ret = []
@@ -100,8 +93,6 @@ class GazeDataset(torch.utils.data.dataset.Dataset):
                 self.data += load_data_vat(os.path.join(path, "{}_preprocessed.json".format(split)), sample_rate=sample_rate, path=path)         # vat has highly homogenous scenes and high native sample rate, so we downsample temporally
             elif dataset_name == "childplay":
                 self.data += load_data_childplay(os.path.join(path, "{}_preprocessed.json".format(split)), sample_rate=sample_rate, path=path)   # childplay gets similar treatment
-            elif dataset_name == "screen":
-                self.data += load_data_screen(os.path.join(path, "{}_preprocessed.json".format(split)), sample_rate=sample_rate, path=path)      # Gaze-on-screen dataset we collected ourselves
             elif dataset_name == "coco":
                 self.data += load_data_coco(os.path.join(path, "{}_preprocessed.json".format(split)), sample_rate=sample_rate, path=path)
             elif dataset_name == "mpii":

@@ -21,7 +21,6 @@ parser.add_argument('--student_model', type=str, default='cross_gaze_dino_vitspl
 parser.add_argument('--gf_data_path', type=str, default=['./data/gazefollow'])
 parser.add_argument('--vat_data_path', type=str, default=['./data/vat'])
 parser.add_argument('--cp_data_path', type=str, default=['./data/childplay'])
-parser.add_argument('--screen_data_path', type=str, default=['./data/screen'])
 parser.add_argument('--mpii_data_path', type=str, default=['./data/mpii'])
 parser.add_argument('--openimages_data_path', type=str, default=['./data/openimages'])
 parser.add_argument('--max_images', type=int, default=200000)

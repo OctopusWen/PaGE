@@ -1,10 +1,39 @@
-# PaGE: Person-Aware Gaze Estimation
+# PaGE: Towards Practical Human-Level Gaze Target Estimation
 
-Official PyTorch implementation of **PaGE** (Person-Aware Gaze Estimation), a cross-modal attention-based model for gaze target estimation.
 
-## Overview
+Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze target estimation model with human-level accuracy and deployable student models.
 
-PaGE is a gaze target estimation model that explicitly models interactions between scene and head features through cross-attention mechanisms. It achieves state-of-the-art performance on multiple gaze estimation benchmarks.
+**Zhoutong Ye<sup>1,*</sup>**, **Chengwen Zhang<sup>1,*</sup>**, Jiaqi Liu<sup>1</sup>, Xiangwu Li<sup>2</sup>, Xutong Wang<sup>1</sup>, Yu Mei<sup>1</sup>, Zhaibin Cui<sup>1</sup>, Mingze Sun<sup>1</sup>, Qingyang Wan<sup>1</sup>, Chang Liu<sup>1</sup>, Chun Yu<sup>1,†</sup>, Yuanchun Shi<sup>1</sup>
+
+<sup>1</sup>Tsinghua University &nbsp;&nbsp; <sup>2</sup>Jinan University &nbsp;&nbsp; <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
+
+## Links
+
+- Project page: https://page-26.github.io/
+- Models: https://huggingface.co/collections/Octopus1/page
+- Paper: arXiv coming soon
+
+## Table of Contents
+
+- [Abstract](#abstract)
+- [Installation](#installation)
+- [Pre-trained Models](#pre-trained-models)
+- [Inference](#inference)
+- [Data Preparation](#data-preparation)
+- [Training Backbones](#training-backbones)
+- [Training](#training)
+- [Evaluation](#evaluation)
+- [Model Architectures](#model-architectures)
+- [Citation](#citation)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
+
+## Abstract
+
+Gaze target estimation, the task of predicting where a person is looking in a scene, is crucial to understanding human attention and intent. It is a challenging task that combines high-level understanding of global scene semantics and precise spatial reasoning using human appearance (e.g. pose, eye orientation). As a result, human-level performance remains elusive for existing models, limiting their practical application.
+
+To this end, we propose **PaGE** (Practical Gaze Estimator), a gaze estimation model that explicitly models the complex interaction between scene and head features. Using a PaGE model with a large ViT-H+ backbone as the teacher, we further distill student models with lighter backbones on a much larger and more diverse unlabeled dataset. The architectural improvements and novel training recipe allow PaGE to achieve state-of-the-art performance on several gaze estimation tasks, **outperforming humans in 7 out of 9 metrics** while reducing the human-AI gap by at least 60% in the remaining 2. The distilled student models retain most of the teacher's performance while being lightweight enough for practical deployment on robots and consumer devices.
 
 ## Installation
 
@@ -41,6 +70,44 @@ cp .env.example .env
 ```
 
 Get your HuggingFace token from: https://huggingface.co/settings/tokens
+
+## Pre-trained Models
+
+We provide pre-trained checkpoints on HuggingFace:
+
+- [page-vits](https://huggingface.co/Octopus1/page-vits) - Small model (ViT-S backbone)
+- [page-vitsplus](https://huggingface.co/Octopus1/page-vitsplus) - Small+ model
+- [page-vitb](https://huggingface.co/Octopus1/page-vitb) - Base model (ViT-B backbone)
+- [page-vithplus](https://huggingface.co/Octopus1/page-vithplus) - Huge+ model (ViT-H+ backbone)
+
+Download checkpoints that you need:
+
+```bash
+# Using HuggingFace CLI
+hf download Octopus1/page-vits --local-dir ./checkpoints/page-vits
+hf download Octopus1/page-vitsplus --local-dir ./checkpoints/page-vitsplus
+hf download Octopus1/page-vitb --local-dir ./checkpoints/page-vitb
+hf download Octopus1/page-vithplus --local-dir ./checkpoints/page-vithplus
+```
+
+## Inference
+
+Run gaze target prediction on a single image given one head bounding box. For inference, you only need the environment and a released PaGE checkpoint. The released HuggingFace checkpoints are **self-contained**: the DINOv3 backbone weights are bundled in the checkpoint and the model structure is loaded from PaGE remote code, so **you do not need the separate DINOv3 backbone weights** used for training.
+
+```bash
+python scripts/inference.py \
+    --image ./demo/scene.jpg \
+    --bbox 0.30 0.12 0.48 0.40 \
+    --model_path ./checkpoints/page-vitb \
+    --output ./visualization/inference.png
+```
+
+- `--bbox` is the head box as normalized `xmin ymin xmax ymax` in `[0, 1]`.
+- `--model_path` can be a local checkpoint directory (e.g. `./checkpoints/page-vitb`) or a HuggingFace repo id (e.g. `Octopus1/page-vitb`).
+- `--device` defaults to CUDA when available; use `--device cpu` if GPU memory is limited.
+- The script crops the head from the frame, runs the model, and saves a visualization with the predicted gaze heatmap, gaze point, and in/out-of-frame probability.
+
+> Inference requires `transformers==5.6.2` (already pinned in `pyproject.toml`; run `uv sync` if it is not installed). The model code is fetched via `trust_remote_code=True` on first run. If you enable verbose HuggingFace loading logs and see `MISSING` / `UNEXPECTED` backbone keys, this is expected across Transformers DINOv3 naming versions; PaGE remote code reloads and remaps the backbone weights after the initial report.
 
 ## Data Preparation
 
@@ -177,28 +244,9 @@ python data_prep/preprocess_openimages.py \
     --crowdhuman_weights ./yolov5-crowdhuman/weights/crowdhuman_yolov5m.pt
 ```
 
-## Pre-trained Models
+## Training Backbones
 
-We provide pre-trained checkpoints on HuggingFace:
-
-- [page-vits](https://huggingface.co/Octopus1/page-vits) - Small model (ViT-S backbone)
-- [page-vitsplus](https://huggingface.co/Octopus1/page-vitsplus) - Small+ model
-- [page-vitb](https://huggingface.co/Octopus1/page-vitb) - Base model (ViT-B backbone)
-- [page-vithplus](https://huggingface.co/Octopus1/page-vithplus) - Huge+ model (ViT-H+ backbone)
-
-Download checkpoints that you need:
-
-```bash
-# Using HuggingFace CLI
-hf download Octopus1/page-vits --local-dir ./checkpoints/page-vits
-hf download Octopus1/page-vitsplus --local-dir ./checkpoints/page-vitsplus
-hf download Octopus1/page-vitb --local-dir ./checkpoints/page-vitb
-hf download Octopus1/page-vithplus --local-dir ./checkpoints/page-vithplus
-```
-
-### DINOv3 Backbone Weights (required for training)
-
-Training initializes the scene and head branches from pre-trained DINOv3 backbones. These are **not** needed for inference with a released PaGE checkpoint, but are **required if you train or fine-tune from scratch**.
+Training from scratch initializes the scene and head branches from pre-trained DINOv3 backbones. These are **not** needed for inference with a released PaGE checkpoint, but are **required if you train or fine-tune from scratch**.
 
 Download the backbone matching the model size you plan to train into `./checkpoints/`:
 
@@ -230,7 +278,6 @@ python scripts/train_all.py \
     --gf_data_path ./data/gazefollow \
     --vat_data_path ./data/vat \
     --cp_data_path ./data/childplay \
-    --screen_data_path ./data/screen \
     --inout \
     --exp_name page_vitb_training \
     --lr 1e-3 \
@@ -247,11 +294,10 @@ Fine-tune a pre-trained model:
 ```bash
 python scripts/train_all.py \
     --model page_vitb_inout_finetune \
-    --model_ckpt_path ./checkpoints/page-vitb/epoch_14.pt \
+    --model_ckpt_path experiments/page_vitb_training/epoch_14.pt \
     --gf_data_path ./data/gazefollow \
     --vat_data_path ./data/vat \
     --cp_data_path ./data/childplay \
-    --screen_data_path ./data/screen \
     --inout \
     --exp_name page_vitb_finetune \
     --batch_size 60 \
@@ -271,7 +317,7 @@ Distill a large teacher model to a smaller student:
 ```bash
 python scripts/distill.py \
     --teacher_model page_vithplus_inout_finetune \
-    --teacher_ckpt ./checkpoints/page-vithplus/epoch_4.pt \
+    --teacher_ckpt ./experiments/page_vithplus_finetune/epoch_4.pt \
     --student_model page_vitb_inout_student \
     --gf_data_path ./data/gazefollow \
     --vat_data_path ./data/vat \
@@ -287,6 +333,27 @@ python scripts/distill.py \
     --ckpt_save_dir ./experiments \
     --max_images 2000000 \
     --eval_every_epochs 1
+```
+
+After distillation, the student can be further fine-tuned on the full training set (GazeFollow + VideoAttentionTarget + ChildPlay), using the distilled checkpoint as initialization:
+
+```bash
+python scripts/train_all.py \
+    --model page_vitb_inout_finetune \
+    --model_ckpt_path ./experiments/distill_h2b/epoch_19.pt \
+    --gf_data_path ./data/gazefollow \
+    --vat_data_path ./data/vat \
+    --cp_data_path ./data/childplay \
+    --inout \
+    --exp_name page_vitb_inout_distill_finetune \
+    --batch_size 60 \
+    --max_epochs 3 \
+    --eval_every_epochs 1 \
+    --warmup_iters 500 \
+    --warmup_start_lr 1e-7 \
+    --lr 2e-5 \
+    --weight_decay 1e-2 \
+    --ckpt_save_dir ./experiments
 ```
 
 ### Training Options

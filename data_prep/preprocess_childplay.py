@@ -63,7 +63,7 @@ def main(DATA_PATH):
                     })
                     head_cnt += 1
                 SEQUENCE.append({
-                    'path': os.path.join("images", "images", clip, f"{clip_name}_{frame_idx}.jpg"),
+                    'path': os.path.join("images", clip, f"{clip_name}_{frame_idx}.jpg"),
                     'heads': heads,
                     'num_heads': num_people,
                     'width': width,
@@ -125,7 +125,7 @@ def main(DATA_PATH):
                 })
                 head_cnt += 1
             SEQUENCE.append({
-                'path': os.path.join("images", "images", clip, f"{clip_name}_{frame_idx}.jpg"),
+                'path': os.path.join("images", clip, f"{clip_name}_{frame_idx}.jpg"),
                 'heads': heads,
                 'num_heads': num_people,
                 'width': width,
