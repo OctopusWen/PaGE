@@ -10,12 +10,10 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./data/mpii")
-parser.add_argument("--annotations_mat", type=str, default=None, help="Path to mpii_human_pose_v1_u12_1.mat")
+parser.add_argument("--annotations_mat", type=str, default=None, help="Path to MPII annotations .mat file")
 parser.add_argument("--images_dir", type=str, default=None, help="Path to MPII images directory")
-parser.add_argument("--train_only", action="store_true", help="Only export training split according to MPII img_train")
-parser.add_argument("--test_only", action="store_true", help="Only export test split according to MPII img_train")
 parser.add_argument("--max_samples", type=int, default=None)
-parser.add_argument("--output_name", type=str, default=None, help="Only used with --train_only or --test_only")
+parser.add_argument("--output_name", type=str, default="train_preprocessed.json")
 args = parser.parse_args()
 
 
@@ -91,27 +89,7 @@ def build_head_record(head_bbox: list[float], width: int, height: int, head_id: 
     }
 
 
-def should_keep_sample(is_train_flag: Any) -> bool:
-    if args.train_only and args.test_only:
-        raise ValueError("--train_only and --test_only cannot both be set")
-    is_train = bool(is_train_flag)
-    if args.train_only:
-        return is_train
-    if args.test_only:
-        return not is_train
-    return True
-
-
-def sample_belongs_to_split(is_train_flag: Any, split_name: str) -> bool:
-    is_train = bool(is_train_flag)
-    if split_name == "train":
-        return is_train
-    if split_name == "test":
-        return not is_train
-    raise ValueError(f"Unsupported split_name: {split_name}")
-
-
-def preprocess_mpii(data_path: str, annotations_mat: str, images_dir: str, max_samples: int | None = None) -> list[dict[str, Any]]:
+def preprocess_mpii_train(data_path: str, annotations_mat: str, images_dir: str, max_samples: int | None = None) -> list[dict[str, Any]]:
     mat = sio.loadmat(annotations_mat, struct_as_record=False, squeeze_me=True)
     release = mat["RELEASE"]
 
@@ -119,9 +97,10 @@ def preprocess_mpii(data_path: str, annotations_mat: str, images_dir: str, max_s
     img_train = as_list(mat_to_python(release.img_train))
 
     frames: list[dict[str, Any]] = []
-    for idx, ann in enumerate(tqdm(annolist, desc="processing mpii")):
+    for idx, ann in enumerate(tqdm(annolist, desc="processing mpii train")):
         train_flag = img_train[idx] if idx < len(img_train) else True
-        if not should_keep_sample(train_flag):
+        # MPII test annotations are withheld; only the train split is usable
+        if not bool(train_flag):
             continue
 
         image_info = ann.get("image") if isinstance(ann, dict) else None
@@ -166,76 +145,7 @@ def preprocess_mpii(data_path: str, annotations_mat: str, images_dir: str, max_s
             "height": height,
             "meta": {
                 "source": "mpii_human_pose",
-                "annotation_index": idx,
-                "is_train": bool(train_flag),
-                "img_name": image_name,
-                "vidx": ann.get("vidx") if isinstance(ann, dict) else None,
-                "frame_sec": ann.get("frame_sec") if isinstance(ann, dict) else None,
-            },
-        })
-
-        if max_samples is not None and len(frames) >= max_samples:
-            break
-
-    return frames
-
-
-def preprocess_mpii_split(data_path: str, annotations_mat: str, images_dir: str, split_name: str, max_samples: int | None = None) -> list[dict[str, Any]]:
-    mat = sio.loadmat(annotations_mat, struct_as_record=False, squeeze_me=True)
-    release = mat["RELEASE"]
-
-    annolist = as_list(mat_to_python(release.annolist))
-    img_train = as_list(mat_to_python(release.img_train))
-
-    frames: list[dict[str, Any]] = []
-    for idx, ann in enumerate(tqdm(annolist, desc=f"processing mpii {split_name}")):
-        train_flag = img_train[idx] if idx < len(img_train) else True
-        if not sample_belongs_to_split(train_flag, split_name):
-            continue
-
-        image_info = ann.get("image") if isinstance(ann, dict) else None
-        image_name = image_info.get("name") if isinstance(image_info, dict) else None
-        if image_name is None:
-            continue
-
-        image_path = os.path.join(images_dir, str(image_name))
-        if not os.path.exists(image_path):
-            continue
-
-        with Image.open(image_path) as img:
-            width, height = img.size
-
-        annorect = as_list(ann.get("annorect") if isinstance(ann, dict) else None)
-        heads = []
-        for rect in annorect:
-            if not isinstance(rect, dict):
-                continue
-            x1 = to_float(rect.get("x1"))
-            y1 = to_float(rect.get("y1"))
-            x2 = to_float(rect.get("x2"))
-            y2 = to_float(rect.get("y2"))
-            if None in (x1, y1, x2, y2):
-                continue
-            x1 = float(cast(float, x1))
-            y1 = float(cast(float, y1))
-            x2 = float(cast(float, x2))
-            y2 = float(cast(float, y2))
-            if x2 <= x1 or y2 <= y1:
-                continue
-            heads.append(build_head_record([x1, y1, x2, y2], width, height, len(heads)))
-
-        if not heads:
-            continue
-
-        frames.append({
-            "path": os.path.relpath(image_path, start=data_path),
-            "heads": heads,
-            "num_heads": len(heads),
-            "width": width,
-            "height": height,
-            "meta": {
-                "source": "mpii_human_pose",
-                "split": split_name,
+                "split": "train",
                 "annotation_index": idx,
                 "is_train": bool(train_flag),
                 "img_name": image_name,
@@ -259,26 +169,11 @@ def main(data_path: str) -> None:
     if not os.path.isdir(images_dir):
         raise FileNotFoundError(f"Images dir not found: {images_dir}")
 
-    if args.train_only or args.test_only:
-        frames = preprocess_mpii(data_path, annotations_mat, images_dir, max_samples=args.max_samples)
-        output_name = args.output_name or ("train_preprocessed.json" if args.train_only else "test_preprocessed.json")
-        out_path = os.path.join(data_path, output_name)
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(frames, f)
-        print(f"Saved {len(frames)} samples to {out_path}")
-        return
-
-    train_frames = preprocess_mpii_split(data_path, annotations_mat, images_dir, split_name="train", max_samples=args.max_samples)
-    train_out_path = os.path.join(data_path, "train_preprocessed.json")
-    with open(train_out_path, "w", encoding="utf-8") as f:
-        json.dump(train_frames, f)
-    print(f"Saved {len(train_frames)} train samples to {train_out_path}")
-
-    test_frames = preprocess_mpii_split(data_path, annotations_mat, images_dir, split_name="test", max_samples=args.max_samples)
-    test_out_path = os.path.join(data_path, "test_preprocessed.json")
-    with open(test_out_path, "w", encoding="utf-8") as f:
-        json.dump(test_frames, f)
-    print(f"Saved {len(test_frames)} test samples to {test_out_path}")
+    frames = preprocess_mpii_train(data_path, annotations_mat, images_dir, max_samples=args.max_samples)
+    out_path = os.path.join(data_path, args.output_name)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(frames, f)
+    print(f"Saved {len(frames)} train samples to {out_path}")
 
 
 if __name__ == "__main__":

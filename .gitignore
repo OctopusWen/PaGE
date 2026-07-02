@@ -172,3 +172,5 @@ sanity_checks/
 visualization/
 
 .vscode
+
+yolov5_crowdhuman/

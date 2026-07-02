@@ -16,18 +16,18 @@ DEFAULT_CLASSES = ["Person", "Man", "Woman", "Boy", "Girl"]
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, default="./data/openimages")
-parser.add_argument("--split", type=str, default="train", choices=["train", "validation", "test"])
+parser.add_argument("--data_path", type=str, default="./data/OpenImages")
+parser.add_argument("--split", type=str, default="train", choices=["train"])
 parser.add_argument(
     "--crowdhuman_repo",
     type=str,
-    default="/root/yolov5-crowdhuman",
+    default="./yolov5-crowdhuman",
     help="Local path of MahenderAutonomo/yolov5-crowdhuman.",
 )
 parser.add_argument(
     "--crowdhuman_weights",
     type=str,
-    default="/root/yolov5-crowdhuman/weights/crowdhuman_yolov5m.pt",
+    default="./yolov5-crowdhuman/weights/crowdhuman_yolov5m.pt",
     help="Weights path for yolov5-crowdhuman.",
 )
 parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
