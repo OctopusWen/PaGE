@@ -7,7 +7,7 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 
 <sup>1</sup>Tsinghua University &nbsp;&nbsp; <sup>2</sup>Jinan University &nbsp;&nbsp; <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
 
-![architecture](.\assets\architecture.jpg)
+![architecture](./assets/architecture.jpg)
 
 ## Links
 
@@ -35,17 +35,17 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 
 Gaze target estimation, the task of predicting where a person is looking in a scene, is crucial to understanding human attention and intent. However, human-level performance remains elusive for existing models, limiting their practical application. To this end, we propose **PaGE** (Practical Gaze Estimator), a gaze estimation model that explicitly models the complex interaction between scene and head features. PaGE **outperforms humans in 7 out of 9 metrics** while reducing the human-AI gap by at least 60% in the remaining 2.
 
-![leaderboard](.\assets\leaderboard.jpg)
+![leaderboard](./assets/leaderboard.jpg)
 
 ### Visualized examples
 
-![main-text](.\assets\main-text.jpg)
+![main-text](./assets/main-text.jpg)
 
 ### Generalization Beyond Real-world Human Gaze
 
 We also find that PaGE can predict the visual attention of animals, cameras, and animated characters **without extra training**. We consider this a first step towards a **universal visual attention estimator**. We hope
 
-![discussion-new](.\assets\discussion-new.jpg)
+![discussion-new](./assets/discussion-new.jpg)
 
 ## Installation
 
@@ -107,10 +107,10 @@ hf download Octopus1/page-vithplus --local-dir ./checkpoints/page-vithplus
 Run gaze target prediction on a single image given one head bounding box. For inference, you only need the environment and a released PaGE checkpoint. The released HuggingFace checkpoints are **self-contained**: the DINOv3 backbone weights are bundled in the checkpoint and the model structure is loaded from PaGE remote code, so **you do not need the separate DINOv3 backbone weights** used for training.
 
 ```bash
-python scripts/inference.py \
-    --image ./demo/scene.jpg \
-    --bbox 0.30 0.12 0.48 0.40 \
-    --model_path ./checkpoints/page-vitb \
+python scripts/inference.py /
+    --image ./demo/scene.jpg /
+    --bbox 0.30 0.12 0.48 0.40 /
+    --model_path ./checkpoints/page-vitb /
     --output ./visualization/inference.png
 ```
 
@@ -249,10 +249,10 @@ cd yolov5-crowdhuman
 # Download weights as per the repo instructions
 cd ..
 
-python data_prep/preprocess_openimages.py \
-    --data_path ./data/OpenImages \
-    --split train \
-    --crowdhuman_repo ./yolov5-crowdhuman \
+python data_prep/preprocess_openimages.py /
+    --data_path ./data/OpenImages /
+    --split train /
+    --crowdhuman_repo ./yolov5-crowdhuman /
     --crowdhuman_weights ./yolov5-crowdhuman/weights/crowdhuman_yolov5m.pt
 ```
 
@@ -285,17 +285,17 @@ The paths above match what [page/model_factory.py](page/model_factory.py) expect
 Train a PaGE model on GazeFollow, VideoAttentionTarget, and ChildPlay:
 
 ```bash
-python scripts/train_all.py \
-    --model page_vitb_inout \
-    --gf_data_path ./data/gazefollow \
-    --vat_data_path ./data/vat \
-    --cp_data_path ./data/childplay \
-    --inout \
-    --exp_name page_vitb_training \
-    --lr 1e-3 \
-    --batch_size 60 \
-    --max_epochs 15 \
-    --eval_every_epochs 3 \
+python scripts/train_all.py /
+    --model page_vitb_inout /
+    --gf_data_path ./data/gazefollow /
+    --vat_data_path ./data/vat /
+    --cp_data_path ./data/childplay /
+    --inout /
+    --exp_name page_vitb_training /
+    --lr 1e-3 /
+    --batch_size 60 /
+    --max_epochs 15 /
+    --eval_every_epochs 3 /
     --ckpt_save_dir ./experiments
 ```
 
@@ -304,21 +304,21 @@ python scripts/train_all.py \
 Fine-tune a pre-trained model:
 
 ```bash
-python scripts/train_all.py \
-    --model page_vitb_inout_finetune \
-    --model_ckpt_path experiments/page_vitb_training/epoch_14.pt \
-    --gf_data_path ./data/gazefollow \
-    --vat_data_path ./data/vat \
-    --cp_data_path ./data/childplay \
-    --inout \
-    --exp_name page_vitb_finetune \
-    --batch_size 60 \
-    --max_epochs 5 \
-    --eval_every_epochs 1 \
-    --warmup_iters 500 \
-    --warmup_start_lr 1e-7 \
-    --lr 1e-5 \
-    --weight_decay 1e-2 \
+python scripts/train_all.py /
+    --model page_vitb_inout_finetune /
+    --model_ckpt_path experiments/page_vitb_training/epoch_14.pt /
+    --gf_data_path ./data/gazefollow /
+    --vat_data_path ./data/vat /
+    --cp_data_path ./data/childplay /
+    --inout /
+    --exp_name page_vitb_finetune /
+    --batch_size 60 /
+    --max_epochs 5 /
+    --eval_every_epochs 1 /
+    --warmup_iters 500 /
+    --warmup_start_lr 1e-7 /
+    --lr 1e-5 /
+    --weight_decay 1e-2 /
     --ckpt_save_dir ./experiments
 ```
 
@@ -327,44 +327,44 @@ python scripts/train_all.py \
 Distill a large teacher model to a smaller student:
 
 ```bash
-python scripts/distill.py \
-    --teacher_model page_vithplus_inout_finetune \
-    --teacher_ckpt ./experiments/page_vithplus_finetune/epoch_4.pt \
-    --student_model page_vitb_inout_student \
-    --gf_data_path ./data/gazefollow \
-    --vat_data_path ./data/vat \
-    --cp_data_path ./data/childplay \
-    --mpii_data_path ./data/MPII \
-    --openimages_data_path ./data/OpenImages \
-    --max_epochs 20 \
-    --batch_size 60 \
-    --lr 2e-4 \
-    --head_loss_lambda 1.0 \
-    --dino_loss_lambda 1.0 \
-    --exp_name distill_h2b \
-    --ckpt_save_dir ./experiments \
-    --max_images 2000000 \
+python scripts/distill.py /
+    --teacher_model page_vithplus_inout_finetune /
+    --teacher_ckpt ./experiments/page_vithplus_finetune/epoch_4.pt /
+    --student_model page_vitb_inout_student /
+    --gf_data_path ./data/gazefollow /
+    --vat_data_path ./data/vat /
+    --cp_data_path ./data/childplay /
+    --mpii_data_path ./data/MPII /
+    --openimages_data_path ./data/OpenImages /
+    --max_epochs 20 /
+    --batch_size 60 /
+    --lr 2e-4 /
+    --head_loss_lambda 1.0 /
+    --dino_loss_lambda 1.0 /
+    --exp_name distill_h2b /
+    --ckpt_save_dir ./experiments /
+    --max_images 2000000 /
     --eval_every_epochs 1
 ```
 
 After distillation, the student can be further fine-tuned on the full training set (GazeFollow + VideoAttentionTarget + ChildPlay), using the distilled checkpoint as initialization:
 
 ```bash
-python scripts/train_all.py \
-    --model page_vitb_inout_finetune \
-    --model_ckpt_path ./experiments/distill_h2b/epoch_19.pt \
-    --gf_data_path ./data/gazefollow \
-    --vat_data_path ./data/vat \
-    --cp_data_path ./data/childplay \
-    --inout \
-    --exp_name page_vitb_inout_distill_finetune \
-    --batch_size 60 \
-    --max_epochs 3 \
-    --eval_every_epochs 1 \
-    --warmup_iters 500 \
-    --warmup_start_lr 1e-7 \
-    --lr 2e-5 \
-    --weight_decay 1e-2 \
+python scripts/train_all.py /
+    --model page_vitb_inout_finetune /
+    --model_ckpt_path ./experiments/distill_h2b/epoch_19.pt /
+    --gf_data_path ./data/gazefollow /
+    --vat_data_path ./data/vat /
+    --cp_data_path ./data/childplay /
+    --inout /
+    --exp_name page_vitb_inout_distill_finetune /
+    --batch_size 60 /
+    --max_epochs 3 /
+    --eval_every_epochs 1 /
+    --warmup_iters 500 /
+    --warmup_start_lr 1e-7 /
+    --lr 2e-5 /
+    --weight_decay 1e-2 /
     --ckpt_save_dir ./experiments
 ```
 
@@ -385,31 +385,31 @@ Evaluate on individual datasets:
 
 ```bash
 # GazeFollow
-python scripts/eval_gazefollow_trainstyle.py \
-    --data_path ./data/gazefollow \
-    --model_name page_vitb_inout_finetune \
-    --ckpt_path ./checkpoints/page-vitb/model.pt \
+python scripts/eval_gazefollow_trainstyle.py /
+    --data_path ./data/gazefollow /
+    --model_name page_vitb_inout_finetune /
+    --ckpt_path ./checkpoints/page-vitb/model.pt /
     --batch_size 60
 
 # VideoAttentionTarget
-python scripts/eval_vat_trainstyle.py \
-    --data_path ./data/vat \
-    --model_name page_vitb_inout_finetune \
-    --ckpt_path ./checkpoints/page-vitb/model.pt \
+python scripts/eval_vat_trainstyle.py /
+    --data_path ./data/vat /
+    --model_name page_vitb_inout_finetune /
+    --ckpt_path ./checkpoints/page-vitb/model.pt /
     --batch_size 60
 
 # ChildPlay
-python scripts/eval_childplay_trainstyle.py \
-    --data_path ./data/childplay \
-    --model_name page_vitb_inout_finetune \
-    --ckpt_path ./checkpoints/page-vitb/model.pt \
+python scripts/eval_childplay_trainstyle.py /
+    --data_path ./data/childplay /
+    --model_name page_vitb_inout_finetune /
+    --ckpt_path ./checkpoints/page-vitb/model.pt /
     --batch_size 60
 
 # GOOReal
-python scripts/eval_gooreal_trainstyle.py \
-    --data_path ./data/GOOReal \
-    --model_name page_vitb_inout_finetune \
-    --ckpt_path ./checkpoints/page-vitb/model.pt \
+python scripts/eval_gooreal_trainstyle.py /
+    --data_path ./data/GOOReal /
+    --model_name page_vitb_inout_finetune /
+    --ckpt_path ./checkpoints/page-vitb/model.pt /
     --batch_size 60
 ```
 
