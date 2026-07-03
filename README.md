@@ -7,6 +7,8 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 
 <sup>1</sup>Tsinghua University &nbsp;&nbsp; <sup>2</sup>Jinan University &nbsp;&nbsp; <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
 
+![architecture](.\assets\architecture.jpg)
+
 ## Links
 
 - Project page: https://page-26.github.io/
@@ -15,7 +17,7 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 
 ## Table of Contents
 
-- [Abstract](#abstract)
+- [Overview](#overview-of-page)
 - [Installation](#installation)
 - [Pre-trained Models](#pre-trained-models)
 - [Inference](#inference)
@@ -29,11 +31,21 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 - [Acknowledgments](#acknowledgments)
 - [Contact](#contact)
 
-## Abstract
+## Overview of PaGE
 
-Gaze target estimation, the task of predicting where a person is looking in a scene, is crucial to understanding human attention and intent. It is a challenging task that combines high-level understanding of global scene semantics and precise spatial reasoning using human appearance (e.g. pose, eye orientation). As a result, human-level performance remains elusive for existing models, limiting their practical application.
+Gaze target estimation, the task of predicting where a person is looking in a scene, is crucial to understanding human attention and intent. However, human-level performance remains elusive for existing models, limiting their practical application. To this end, we propose **PaGE** (Practical Gaze Estimator), a gaze estimation model that explicitly models the complex interaction between scene and head features. PaGE **outperforms humans in 7 out of 9 metrics** while reducing the human-AI gap by at least 60% in the remaining 2.
 
-To this end, we propose **PaGE** (Practical Gaze Estimator), a gaze estimation model that explicitly models the complex interaction between scene and head features. Using a PaGE model with a large ViT-H+ backbone as the teacher, we further distill student models with lighter backbones on a much larger and more diverse unlabeled dataset. The architectural improvements and novel training recipe allow PaGE to achieve state-of-the-art performance on several gaze estimation tasks, **outperforming humans in 7 out of 9 metrics** while reducing the human-AI gap by at least 60% in the remaining 2. The distilled student models retain most of the teacher's performance while being lightweight enough for practical deployment on robots and consumer devices.
+![leaderboard](.\assets\leaderboard.jpg)
+
+### Visualized examples
+
+![main-text](.\assets\main-text.jpg)
+
+### Generalization Beyond Real-world Human Gaze
+
+We also find that PaGE can predict the visual attention of animals, cameras, and animated characters **without extra training**. We consider this a first step towards a **universal visual attention estimator**. We hope
+
+![discussion-new](.\assets\discussion-new.jpg)
 
 ## Installation
 
@@ -401,7 +413,7 @@ python scripts/eval_gooreal_trainstyle.py \
     --batch_size 60
 ```
 
-## Model Architectures
+## Model Zoo
 
 Available models:
 - `page_vits_inout`: ViT-S backbone (smallest)
@@ -410,12 +422,12 @@ Available models:
 - `page_vitl_inout`: ViT-L backbone
 - `page_vithplus_inout`: ViT-H+ backbone (largest)
 
-For student models (used in distillation), append `_student` to the name.
-For fine-tuning, append `_finetune`.
+For student models (used in distillation), append `_student` to the name (e.g. `page_vitb_inout_student`).
+For fine-tuning, append `_finetune` (e.g. `page_vitb_inout_finetune`).
 
 ## Citation
 
-If you use PaGE in your research, please cite:
+If you find PaGE useful for your project, consider giving us a star and cite:
 
 ```bibtex
 @article{page2024,
@@ -432,9 +444,21 @@ This project is licensed under the terms specified in the LICENSE file.
 
 ## Acknowledgments
 
-- DINOv3 backbones from [Meta AI](https://github.com/facebookresearch/dinov2)
-- GazeFollow dataset from [Recasens et al.](https://www.gazefollow.com/)
-- VideoAttentionTarget from [Chong et al.](https://github.com/ejcgt/attention-target-detection)
+- PaGE is based on the DINOv3 backbone from [Meta AI](https://github.com/facebookresearch/dinov3)
+- We train our model with the following public datasets
+  - GazeFollow from [Recasens et al.](https://www.gazefollow.com/)
+  - VideoAttentionTarget from [Chong et al.](https://github.com/ejcgt/attention-target-detection)
+  - ChildPlay from [Tafasca et al.](https://www.idiap.ch/en/scientific-research/data/childplay-gaze)
+  - MPII from [Andriluka et al.](https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/software-and-datasets/mpii-human-pose-dataset)
+  - OpenImages v7 from [Google](https://storage.googleapis.com/openimages/web/index.html)
+
+- In addition, we evaluated PaGE on the following public benchmarks
+  - GOO-Real from [Tomas et al.](https://github.com/upeee/GOO-GAZE2021)
+  - Zhang et al.'s [gaze target recognition benchmark](https://zoryzhang.github.io/gaze/)
+  - AA from [Liu et al.](https://arxiv.org/abs/2606.31211)
+
+
+- Some of our implementations are adapted from [Chong et al.](https://github.com/ejcgt/attention-target-detection) and [Gaze-LLE](https://github.com/fkryan/gazelle). We are grateful for their effort to make gaze target estimation open-source, accessible, and reproducible.
 
 ## Contact
 
