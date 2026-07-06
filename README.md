@@ -3,7 +3,7 @@
 
 Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze target estimation model with human-level accuracy and deployable student models.
 
-**Zhoutong Ye<sup>1,*</sup>**, **Chengwen Zhang<sup>1,*</sup>**, Jiaqi Liu<sup>1</sup>, Xiangwu Li<sup>2</sup>, Xutong Wang<sup>1</sup>, Yu Mei<sup>1</sup>, Zhaibin Cui<sup>1</sup>, Mingze Sun<sup>1</sup>, Qingyang Wan<sup>1</sup>, Chang Liu<sup>1</sup>, Chun Yu<sup>1,†</sup>, Yuanchun Shi<sup>1</sup>
+**Zhoutong Ye<sup>1,*</sup>**, **Chengwen Zhang<sup>1,*</sup>**, Zhaibin Cui<sup>1</sup>, Mingze Sun<sup>1</sup>, Jiaqi Liu<sup>1</sup>, Xiangwu Li<sup>2</sup>, Qingyang Wan<sup>1</sup>, Chang Liu<sup>1</sup>, Xutong Wang<sup>1</sup>, Huan-ang Gao<sup>1</sup>, Yu Mei<sup>1</sup>, Chun Yu<sup>1,†</sup>, Yuanchun Shi<sup>1</sup>
 
 <sup>1</sup>Tsinghua University &nbsp;&nbsp; <sup>2</sup>Jinan University &nbsp;&nbsp; <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
 
