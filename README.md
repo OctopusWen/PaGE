@@ -14,6 +14,7 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 - Project page: https://page-26.github.io/
 - Models: https://huggingface.co/collections/Octopus1/page
 - Paper: arXiv coming soon
+- Live Demo: https://page-crossgaze-page.hf.space/
 
 ## Table of Contents
 
