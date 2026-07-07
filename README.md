@@ -13,7 +13,7 @@ Official PyTorch implementation of **PaGE** (Practical Gaze Estimator), a gaze t
 
 - Project page: https://page-26.github.io/
 - Models: https://huggingface.co/collections/Octopus1/page
-- Paper: arXiv coming soon
+- Paper: https://arxiv.org/abs/2607.04860
 - Live Demo: https://page-crossgaze-page.hf.space/
 
 ## Table of Contents
@@ -431,11 +431,14 @@ For fine-tuning, append `_finetune` (e.g. `page_vitb_inout_finetune`).
 If you find PaGE useful for your project, consider giving us a star and cite:
 
 ```bibtex
-@article{page2024,
-  title={PaGE: Person-Aware Gaze Estimation with Cross-Modal Attention},
-  author={Your Name},
-  journal={arXiv preprint arXiv:XXXX.XXXXX},
-  year={2024}
+@misc{ye2026pagepracticalhumanlevelgaze,
+      title={PAGE: Towards Practical Human-level Gaze Target Estimation}, 
+      author={Zhoutong Ye and Chengwen Zhang and Zhaibin Cui and Mingze Sun and Jiaqi Liu and Xiangwu Li and Qingyang Wan and Chang Liu and Xutong Wang and Huan-ang Gao and Yu Mei and Chun Yu and Yuanchun Shi},
+      year={2026},
+      eprint={2607.04860},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2607.04860}, 
 }
 ```
 
