@@ -44,7 +44,7 @@ Gaze target estimation, the task of predicting where a person is looking in a sc
 
 ### Generalization Beyond Real-world Human Gaze
 
-We also find that PaGE can predict the visual attention of animals, cameras, and animated characters **without extra training**. We consider this a first step towards a **universal visual attention estimator**. We hope
+We also find that PaGE can predict the visual attention of animals, cameras, and animated characters **without extra training**. We consider this a first step towards a **universal visual attention estimator**. We hope our work can form the basis of a future *GazeAnything* model and help turn a new *page* for the field of gaze target estimation.
 
 ![discussion-new](./assets/discussion-new.jpg)
 
