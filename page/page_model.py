@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torchvision
+import math
+from PIL import Image
 from timm.models.vision_transformer import Block
 from timm.layers.mlp import SwiGLU, Mlp
 from page.rope_self_attention import AxialRoPEBlock
@@ -282,6 +284,76 @@ class PaGE(nn.Module):
                 nn.Dropout(0.1),
                 nn.Linear(128, 1),
             )
+
+    @staticmethod
+    def _bbox_to_pixels(bbox, width, height):
+        """Convert normalized or pixel coordinates to a valid crop box."""
+        if bbox is None or len(bbox) != 4:
+            raise ValueError("Each bbox must contain exactly four values: x1,y1,x2,y2.")
+        values = [float(value) for value in bbox]
+        if not all(math.isfinite(value) for value in values):
+            raise ValueError(f"BBox contains non-finite values: {bbox!r}")
+        if all(0.0 <= value <= 1.0 for value in values):
+            values = [values[0] * width, values[1] * height, values[2] * width, values[3] * height]
+
+        x1 = max(0.0, min(float(width - 1), values[0]))
+        y1 = max(0.0, min(float(height - 1), values[1]))
+        x2 = max(0.0, min(float(width), values[2]))
+        y2 = max(0.0, min(float(height), values[3]))
+        pixel_box = (round(x1), round(y1), round(x2), round(y2))
+        if pixel_box[2] <= pixel_box[0] or pixel_box[3] <= pixel_box[1]:
+            raise ValueError(f"BBox is empty or outside the image: {bbox!r}")
+        normalized_box = [
+            pixel_box[0] / width,
+            pixel_box[1] / height,
+            pixel_box[2] / width,
+            pixel_box[3] / height,
+        ]
+        return pixel_box, normalized_box
+
+    def preprocess(self, scene_image, bboxes, head_crops=None):
+        """Create model inputs, cropping heads from the scene when needed.
+
+        Each bbox may use normalized coordinates (all four values in [0, 1]) or
+        pixel coordinates, including decimal pixel values.
+        """
+        if not isinstance(scene_image, Image.Image):
+            raise TypeError("scene_image must be a PIL.Image.Image")
+        if bboxes is None:
+            raise ValueError("bboxes is required")
+        scene_image = scene_image.convert("RGB")
+        bboxes = list(bboxes)
+        if len(bboxes) == 4 and not any(isinstance(value, (list, tuple)) for value in bboxes):
+            bboxes = [bboxes]
+        if not bboxes:
+            raise ValueError("At least one bbox is required")
+
+        width, height = scene_image.size
+        parsed = [self._bbox_to_pixels(bbox, width, height) for bbox in bboxes]
+        pixel_boxes = [item[0] for item in parsed]
+        normalized_boxes = [tuple(item[1]) for item in parsed]
+
+        if head_crops is None:
+            head_crops = [scene_image.crop(box) for box in pixel_boxes]
+        else:
+            head_crops = list(head_crops)
+            if len(head_crops) != len(pixel_boxes):
+                raise ValueError("head_crops and bboxes must contain the same number of entries")
+            head_crops = [
+                scene_image.crop(box) if crop is None else crop.convert("RGB") if isinstance(crop, Image.Image) else crop
+                for crop, box in zip(head_crops, pixel_boxes)
+            ]
+
+        scene_inputs = [transform(scene_image).unsqueeze(0) for transform in self.scene_branch_backbone.get_transforms()]
+        head_inputs = [
+            torch.stack([transform(crop) for crop in head_crops], dim=0)
+            for transform in self.head_branch_backbone.get_transforms()
+        ]
+        return {
+            "images": scene_inputs,
+            "head_images": head_inputs,
+            "bboxes": [[normalized_box for normalized_box in normalized_boxes]],
+        }
 
     def get_logits(self, input, return_tokens=False):
         """

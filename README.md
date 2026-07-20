@@ -108,17 +108,30 @@ hf download Octopus1/page-vithplus --local-dir ./checkpoints/page-vithplus
 Run gaze target prediction on a single image given one head bounding box. For inference, you only need the environment and a released PaGE checkpoint. The released HuggingFace checkpoints are **self-contained**: the DINOv3 backbone weights are bundled in the checkpoint and the model structure is loaded from PaGE remote code, so **you do not need the separate DINOv3 backbone weights** used for training.
 
 ```bash
-python scripts/inference.py /
-    --image ./demo/scene.jpg /
-    --bbox 0.30 0.12 0.48 0.40 /
-    --model_path ./checkpoints/page-vitb /
+python scripts/inference.py \
+    --image ./demo/scene.jpg \
+    --bbox 0.30 0.12 0.48 0.40 \
+    --model_path ./checkpoints/page-vitb \
     --output ./visualization/inference.png
 ```
 
-- `--bbox` is the head box as normalized `xmin ymin xmax ymax` in `[0, 1]`.
+- `--bbox` is the head box as `xmin ymin xmax ymax`. It accepts normalized coordinates when all
+  four values are in `[0, 1]`, or image-pixel coordinates (integer or decimal) otherwise.
 - `--model_path` can be a local checkpoint directory (e.g. `./checkpoints/page-vitb`) or a HuggingFace repo id (e.g. `Octopus1/page-vitb`).
 - `--device` defaults to CUDA when available; use `--device cpu` if GPU memory is limited.
-- The script crops the head from the frame, runs the model, and saves a visualization with the predicted gaze heatmap, gaze point, and in/out-of-frame probability.
+- Only the scene image and bbox are required from the caller. The inference script crops the head
+  from the frame, passes both images to the unchanged released processor, runs the model, and saves
+  a visualization with the predicted gaze heatmap, gaze point, and in/out-of-frame probability.
+
+Pixel bbox example:
+
+```bash
+python scripts/inference.py \
+    --image ./demo/scene.jpg \
+    --bbox 120.5 80.2 260.8 240.6 \
+    --model_path ./checkpoints/page-vitb \
+    --output ./visualization/inference-pixel-bbox.png
+```
 
 > Inference requires `transformers==5.6.2` (already pinned in `pyproject.toml`; run `uv sync` if it is not installed). The model code is fetched via `trust_remote_code=True` on first run. If you enable verbose HuggingFace loading logs and see `MISSING` / `UNEXPECTED` backbone keys, this is expected across Transformers DINOv3 naming versions; PaGE remote code reloads and remaps the backbone weights after the initial report.
 

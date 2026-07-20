@@ -8,7 +8,8 @@ structure is loaded from the checkpoint's remote code via `trust_remote_code`.
 So this script does NOT need page.model_factory, page.backbone, or any external
 DINOv3 weights.
 
-Input : one RGB frame + one head bounding box (normalized xyxy in [0, 1]).
+Input : one RGB frame + one head bounding box. Bboxes can be normalized xyxy
+        coordinates (all four values in [0, 1]) or pixel xyxy coordinates.
 Output: a visualization overlaying the predicted gaze heatmap, the head box, the
         argmax gaze point, and the in/out-of-frame probability.
 
@@ -43,7 +44,7 @@ def parse_args():
         nargs=4,
         metavar=("XMIN", "YMIN", "XMAX", "YMAX"),
         required=True,
-        help="Head bounding box as normalized xyxy in [0, 1]",
+        help="Head bbox as normalized xyxy (all values in [0,1]) or pixel xyxy",
     )
     parser.add_argument(
         "--model_path",
@@ -71,23 +72,29 @@ def parse_args():
     return parser.parse_args()
 
 
-def validate_bbox(bbox):
-    xmin, ymin, xmax, ymax = bbox
-    if not all(0.0 <= v <= 1.0 for v in bbox):
-        raise ValueError(f"--bbox must be normalized to [0, 1], got {bbox}")
-    if xmax <= xmin or ymax <= ymin:
-        raise ValueError(f"--bbox must satisfy xmax>xmin and ymax>ymin, got {bbox}")
-    return tuple(float(v) for v in bbox)
+def parse_bbox(bbox, image_size):
+    """Return (pixel_xyxy, normalized_xyxy) for either bbox coordinate style."""
+    width, height = image_size
+    values = [float(value) for value in bbox]
+    if all(0.0 <= value <= 1.0 for value in values):
+        pixel_values = [values[0] * width, values[1] * height, values[2] * width, values[3] * height]
+    else:
+        pixel_values = values
+
+    x1 = max(0, min(width - 1, int(round(pixel_values[0]))))
+    y1 = max(0, min(height - 1, int(round(pixel_values[1]))))
+    x2 = max(0, min(width, int(round(pixel_values[2]))))
+    y2 = max(0, min(height, int(round(pixel_values[3]))))
+    if x2 <= x1 or y2 <= y1:
+        raise ValueError(f"--bbox is empty or outside the image: {bbox}")
+    pixel_bbox = (x1, y1, x2, y2)
+    normalized_bbox = (x1 / width, y1 / height, x2 / width, y2 / height)
+    return pixel_bbox, normalized_bbox
 
 
-def crop_head(scene: Image.Image, bbox) -> Image.Image:
-    """Crop the head region from the scene using a normalized xyxy bbox."""
-    w, h = scene.size
-    xmin, ymin, xmax, ymax = bbox
-    left = int(round(xmin * w))
-    top = int(round(ymin * h))
-    right = max(left + 1, int(round(xmax * w)))
-    bottom = max(top + 1, int(round(ymax * h)))
+def crop_head(scene: Image.Image, pixel_bbox) -> Image.Image:
+    """Crop the head region from the scene using a pixel xyxy bbox."""
+    left, top, right, bottom = pixel_bbox
     return scene.crop((left, top, right, bottom))
 
 
@@ -116,9 +123,17 @@ def move_to_device(obj, device):
     return obj
 
 
+def processor_inputs(processor, scene, pixel_bbox, normalized_bbox):
+    """Crop the head locally, then call the unchanged HF processor."""
+    return processor(
+        scene,
+        head_crops=[crop_head(scene, pixel_bbox)],
+        bboxes=[[normalized_bbox]],
+    )
+
+
 def main():
     args = parse_args()
-    bbox = validate_bbox(args.bbox)
 
     # Import here so the (large) transformers import only happens when running,
     # and so a missing dependency produces a clear, actionable message.
@@ -132,7 +147,7 @@ def main():
         ) from e
 
     scene = Image.open(args.image).convert("RGB")
-    head = crop_head(scene, bbox)
+    pixel_bbox, bbox = parse_bbox(args.bbox, scene.size)
 
     print(f"[Info] loading model from {args.model_path}")
     if args.verbose:
@@ -148,7 +163,9 @@ def main():
         finally:
             hf_logging.set_verbosity(old_verbosity)
 
-    inputs = processor(scene, head_crops=[head], bboxes=[[bbox]])
+    # The released HF processor still expects both the scene and head crop.
+    # Crop the head here so callers only need to provide one scene image + bbox.
+    inputs = processor_inputs(processor, scene, pixel_bbox, bbox)
     inputs = move_to_device(inputs, args.device)
 
     with torch.inference_mode():
